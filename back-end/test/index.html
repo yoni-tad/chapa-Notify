@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chapa Payment Example</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 15px 20px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Chapa Payment Example</h1>
+    <p>Click below to make a payment to the bot:</p>
+
+    <button id="payButton">Pay 50.00 ETB</button>
+
+    <div id="paymentResult"></div>
+
+    <script>
+      document
+        .getElementById("payButton")
+        .addEventListener("click", async function () {
+          // 1. Generate the payment link
+          const response = await fetch("http://localhost:5050/create-payment", {
+            method: "POST",
+          });
+          const data = await response.json();
+
+          if (data.checkout_url) {
+            // Redirect user to Chapa payment page
+            window.location.href = data.checkout_url;
+          }
+        });
+    </script>
+  </body>
+</html>
