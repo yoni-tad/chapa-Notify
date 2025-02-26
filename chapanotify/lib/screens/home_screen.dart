@@ -15,6 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String selectedFilter = 'today';
   final GraphqlService _graphqlService = GraphqlService();
   late Future<List<Map<String, dynamic>>> _transactions;
   int totalAmount = 0;
@@ -23,12 +24,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _transactions = _graphqlService.getTransaction();
+    _transactions = _graphqlService.getTransaction(selectedFilter);
     totalTransactionAmount();
   }
 
   void totalTransactionAmount() async {
-    final fetchTransactions = await _graphqlService.getTransaction();
+    final fetchTransactions = await _graphqlService.getTransaction(
+      selectedFilter,
+    );
     setState(() {
       totalAmount = fetchTransactions.fold(0, (sum, item) {
         return sum + (item['amount'] as int? ?? 0);
@@ -37,35 +40,60 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<List<BotData>> fetchTransactions() async {
-    await Future.delayed(Duration(seconds: 2));
+    try {
+      await Future.delayed(Duration(seconds: 1));
 
-    List<Map<String, dynamic>> transactions =
-        await _graphqlService.getTransaction();
+      List<Map<String, dynamic>> transactions = await _graphqlService
+          .getTransaction(selectedFilter);
 
-    Map<String, dynamic> categorizedData = {};
+      if (transactions.isEmpty) {
+        throw Exception('No transaction available');
+      }
 
-    for (var transaction in transactions) {
-      String botName = transaction['botName'];
-      int amount = transaction['amount'];
+      Map<String, dynamic> categorizedData = {};
 
-      categorizedData.update(
-        botName,
-        (value) => value + amount,
-        ifAbsent: () => amount,
-      );
+      for (var transaction in transactions) {
+        String botName = transaction['botName'];
+        int amount = transaction['amount'];
+
+        categorizedData.update(
+          botName,
+          (value) => value + amount,
+          ifAbsent: () => amount,
+        );
+      }
+
+      return categorizedData.entries.map((entry) {
+        return BotData(name: entry.key, amount: entry.value);
+      }).toList();
+    } catch (e) {
+      print("Error fetching transactions: $e");
+      return [];
     }
-
-    return categorizedData.entries.map((entry) {
-      return BotData(name: entry.key, amount: entry.value);
-    }).toList();
   }
 
   Future<void> _pullRefresh() async {
     await fetchTransactions();
+    totalTransactionAmount();
     setState(() {
-      _transactions = _graphqlService.getTransaction();
+      _transactions = _graphqlService.getTransaction(selectedFilter);
       totalTransactionAmount();
     });
+  }
+
+  final List<Map<String, String>> filterOptions = [
+    {"value": "today", "label": "📅 Today"},
+    {"value": "this_week", "label": "📅 This Week"},
+    {"value": "this_month", "label": "📅 This Month"},
+    {"value": "all", "label": "📅 All Time"},
+  ];
+
+  void changeFilter(value) async {
+    setState(() {
+      selectedFilter = value.toString();
+    });
+    _transactions = _graphqlService.getTransaction(selectedFilter);
+    totalTransactionAmount();
   }
 
   @override
@@ -128,9 +156,33 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      DropdownButton(
-                        items: [DropdownMenuItem(child: Text('All time'))],
-                        onChanged: (value) => {},
+                      SizedBox(
+                        width: 100.w,
+                        child: DropdownButtonFormField<String>(
+                          value: selectedFilter,
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                          ),
+                          style: TextStyle(
+                            color: Colors.pinkAccent[700],
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12.sp
+                          ),
+                          icon: Icon(
+                            Icons.arrow_drop_down_rounded,
+                            color: Colors.pink,
+                            size: 20.w,
+                          ),
+                          dropdownColor: Colors.white,
+                          items:
+                              filterOptions.map((filter) {
+                                return DropdownMenuItem(
+                                  value: filter['value'],
+                                  child: Text(filter['label']!),
+                                );
+                              }).toList(),
+                          onChanged: (value) => {changeFilter(value)},
+                        ),
                       ),
                     ],
                   ),
@@ -175,28 +227,34 @@ Widget transactionList(_transactions) {
       }
 
       if (snapshot.hasError) {
-        return Center(child: Text('Error: ${snapshot.error}'));
+        print('Error: ${snapshot.error}');
+        return SizedBox();
       }
 
-      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-        return Center(child: Text('No transactions available.'));
+      try {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text('No transactions available.'));
+        }
+
+        List<Map<String, dynamic>> transactions = snapshot.data!;
+
+        return ListView.builder(
+          itemCount: transactions.length,
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            final transaction = transactions[index];
+            return TransactionCard(
+              botName: transaction['botName'],
+              amount: transaction['amount'],
+              timeStamp: transaction['timeStamp'],
+            );
+          },
+        );
+      } catch (e) {
+        print('Unexpected error while building transactions: $e');
+        return Center(child: Text('An unexpected error occurred'));
       }
-
-      List<Map<String, dynamic>> transactions = snapshot.data!;
-
-      return ListView.builder(
-        itemCount: transactions.length,
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        itemBuilder: (context, index) {
-          final transaction = transactions[index];
-          return TransactionCard(
-            botName: transaction['botName'],
-            amount: transaction['amount'],
-            timeStamp: formatTimeStamp(transaction['timeStamp']),
-          );
-        },
-      );
     },
   );
 }
@@ -264,7 +322,7 @@ Widget transactionChart(fetchTransactions) {
 
 String formatTimeStamp(timeStamp) {
   DateTime dateTime = DateTime.parse(timeStamp);
-  return DateFormat('yyyy-MM-dd hh:mm a').format(dateTime);
+  return DateFormat('yyyy-MM-dd hh:mm a').format(timeStamp);
 }
 
 class BotData {

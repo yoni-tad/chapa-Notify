@@ -2,21 +2,24 @@ import 'package:chapanotify/config/graphql_config.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 class GraphqlService {
-  final _getTransactionsQuery = r""" 
-    query {
-      getTransactions {
-        id
-        botName
-        amount
-        tx_ref
-        timeStamp
+  String _getTransactionsQuery() {
+    return r""" 
+      query getTransactions($filter: String!){
+        getTransactions(filter: $filter) {
+          id
+          botName
+          amount
+          tx_ref
+          timeStamp
+        }
       }
-    }
-  """;
+    """;
+  }
 
-  Future<List<Map<String, dynamic>>> getTransaction() async {
+  Future<List<Map<String, dynamic>>> getTransaction(String filter) async {
     final QueryOptions options = QueryOptions(
-      document: gql(_getTransactionsQuery),
+      document: gql(_getTransactionsQuery()),
+      variables: {'filter': filter},
     );
     final GraphQLClient client = GraphqlConfig.clientToQuery();
 
@@ -29,7 +32,7 @@ class GraphqlService {
         );
       }
 
-      List transactions = result.data?['getTransactions'] ?? '';
+      List transactions = result.data?['getTransactions'] ?? [];
 
       return List<Map<String, dynamic>>.from(transactions);
     } catch (e) {

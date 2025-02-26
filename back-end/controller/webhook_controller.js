@@ -19,7 +19,16 @@ exports.Webhook = async (req, res) => {
     if (expectedSignature === signature) {
       const responseData = req.body;
 
-      const { event, tx_ref, status, amount, customization } = responseData;
+      const {
+        event,
+        tx_ref,
+        payment_method,
+        reference,
+        created_at,
+        status,
+        amount,
+        customization,
+      } = responseData;
 
       if (event == "charge.success" && status == "success") {
         console.log("Payment was Successful");
@@ -35,7 +44,10 @@ exports.Webhook = async (req, res) => {
           botName,
           amount,
           tx_ref,
-          timeStamp: new Date().toISOString(),
+          payment_method,
+          reference,
+          created_at,
+          timeStamp: new Date(),
         });
         await newTransaction.save();
 

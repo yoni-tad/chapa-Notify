@@ -6,11 +6,14 @@ const typeDefs = gql`
         botName: String!
         amount: Float!
         tx_ref: String!
+        payment_method: String,
+        reference: String,
+        created_at: String,
         timeStamp: String!
     }
 
     type Query {
-        getTransactions: [Transaction]
+        getTransactions(filter: String): [Transaction]
     }
 
     type Mutation {
@@ -18,6 +21,9 @@ const typeDefs = gql`
             botName: String!,
             amount: Float!,
             tx_ref: String!,
+            payment_method: String!,
+            reference: String!,
+            created_at: String!,
         ): Transaction
     }
 `;
