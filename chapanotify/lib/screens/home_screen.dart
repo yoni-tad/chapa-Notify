@@ -176,12 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          showToast('TEst');
-                        },
-                        child: Icon(Icons.notifications_active_outlined),
-                      ),
+                      Icon(Icons.notifications_active_outlined),
                     ],
                   ),
                   SizedBox(height: 40.h),
