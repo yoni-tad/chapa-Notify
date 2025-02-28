@@ -1,10 +1,15 @@
+import 'dart:async';
+
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:chapanotify/config/graphql_config.dart';
 import 'package:chapanotify/main.dart';
 import 'package:chapanotify/screens/widgets/transaction_card.dart';
 import 'package:chapanotify/services/graphql_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,6 +20,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+   late StreamSubscription<List<ConnectivityResult>> _subscription;
+
   String selectedFilter = 'today';
   final GraphqlService _graphqlService = GraphqlService();
   late Future<List<Map<String, dynamic>>> _transactions;
@@ -22,10 +29,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _transactions = _graphqlService.getTransaction(selectedFilter);
     totalTransactionAmount();
+    _subscription = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> result) {
+      ConnectivityResult connectivityResult = result.isNotEmpty ? result[0] : ConnectivityResult.none;
+      checkInternet(connectivityResult);
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _subscription.cancel();
   }
 
   void totalTransactionAmount() async {
@@ -37,6 +53,32 @@ class _HomeScreenState extends State<HomeScreen> {
         return sum + (item['amount'] as int? ?? 0);
       });
     });
+  }
+
+  Future<void> checkInternet(ConnectivityResult result) async {
+    bool isConnected = await InternetConnection().hasInternetAccess;
+
+    if (isConnected) {
+      showToast('❌ No Internet Connection');
+    }
+  }
+
+  void showToast(String message) {
+    final materialBar = MaterialBanner(
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+
+      content: AwesomeSnackbarContent(
+        title: 'On Snap',
+        message: message,
+        contentType: ContentType.failure,
+      ),
+      actions: [SizedBox.shrink()],
+    );
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentMaterialBanner()
+      ..showMaterialBanner(materialBar);
   }
 
   Future<List<BotData>> fetchTransactions() async {
@@ -103,6 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
         body: RefreshIndicator(
           onRefresh: _pullRefresh,
           child: SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
               child: Column(
@@ -133,7 +176,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      Icon(Icons.notifications_active_outlined),
+                      GestureDetector(
+                        onTap: () {
+                          showToast('TEst');
+                        },
+                        child: Icon(Icons.notifications_active_outlined)),
                     ],
                   ),
                   SizedBox(height: 40.h),
@@ -160,13 +207,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 100.w,
                         child: DropdownButtonFormField<String>(
                           value: selectedFilter,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                          ),
+                          decoration: InputDecoration(border: InputBorder.none),
                           style: TextStyle(
                             color: Colors.pinkAccent[700],
                             fontWeight: FontWeight.w600,
-                            fontSize: 12.sp
+                            fontSize: 12.sp,
                           ),
                           icon: Icon(
                             Icons.arrow_drop_down_rounded,

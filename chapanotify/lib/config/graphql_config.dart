@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 class GraphqlConfig {
-  static HttpLink httpLink = HttpLink('http://192.168.80.138:5050/graphql');
+  static HttpLink httpLink = HttpLink(
+    'https://chapa-notify.yoni-tad.com/graphql/',
+    defaultHeaders: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    },
+  );
 
   static ValueNotifier<GraphQLClient> initClient() {
     return ValueNotifier(GraphQLClient(link: httpLink, cache: GraphQLCache()));

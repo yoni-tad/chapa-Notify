@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
           client: GraphqlConfig.initClient(),
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: 'Flutter Demo',
+            title: 'Chapa Notify',
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             ),
