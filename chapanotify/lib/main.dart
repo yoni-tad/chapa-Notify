@@ -1,5 +1,6 @@
 import 'package:chapanotify/config/graphql_config.dart';
 import 'package:chapanotify/screens/home_screen.dart';
+import 'package:chapanotify/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -24,9 +25,9 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             title: 'Chapa Notify',
             theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+              colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff7DC400)),
             ),
-            home: HomeScreen(),
+            home: SplashScreen(),
           ),
         );
       },

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:chapanotify/config/graphql_config.dart';
 import 'package:chapanotify/main.dart';
 import 'package:chapanotify/screens/widgets/transaction_card.dart';
@@ -11,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:intl/intl.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,7 +21,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-   late StreamSubscription<List<ConnectivityResult>> _subscription;
+  late StreamSubscription<List<ConnectivityResult>> _subscription;
 
   String selectedFilter = 'today';
   final GraphqlService _graphqlService = GraphqlService();
@@ -32,8 +33,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _transactions = _graphqlService.getTransaction(selectedFilter);
     totalTransactionAmount();
-    _subscription = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> result) {
-      ConnectivityResult connectivityResult = result.isNotEmpty ? result[0] : ConnectivityResult.none;
+    _subscription = Connectivity().onConnectivityChanged.listen((
+      List<ConnectivityResult> result,
+    ) {
+      ConnectivityResult connectivityResult =
+          result.isNotEmpty ? result[0] : ConnectivityResult.none;
       checkInternet(connectivityResult);
     });
   }
@@ -58,27 +62,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> checkInternet(ConnectivityResult result) async {
     bool isConnected = await InternetConnection().hasInternetAccess;
 
-    if (isConnected) {
-      showToast('❌ No Internet Connection');
+    if (!isConnected) {
+      showToast('No Internet Connection');
     }
   }
 
   void showToast(String message) {
-    final materialBar = MaterialBanner(
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-
-      content: AwesomeSnackbarContent(
-        title: 'On Snap',
-        message: message,
-        contentType: ContentType.failure,
-      ),
-      actions: [SizedBox.shrink()],
+    showTopSnackBar(
+      Overlay.of(context),
+      CustomSnackBar.error(message: message),
     );
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentMaterialBanner()
-      ..showMaterialBanner(materialBar);
   }
 
   Future<List<BotData>> fetchTransactions() async {
@@ -115,6 +108,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _pullRefresh() async {
+    bool isConnected = await InternetConnection().hasInternetAccess;
+
+    if (!isConnected) {
+      showToast('No Internet Connection');
+      return;
+    }
+
     await fetchTransactions();
     totalTransactionAmount();
     setState(() {
@@ -180,7 +180,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           showToast('TEst');
                         },
-                        child: Icon(Icons.notifications_active_outlined)),
+                        child: Icon(Icons.notifications_active_outlined),
+                      ),
                     ],
                   ),
                   SizedBox(height: 40.h),
@@ -209,13 +210,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           value: selectedFilter,
                           decoration: InputDecoration(border: InputBorder.none),
                           style: TextStyle(
-                            color: Colors.pinkAccent[700],
+                            color: Color(0xff7DC400),
                             fontWeight: FontWeight.w600,
                             fontSize: 12.sp,
                           ),
                           icon: Icon(
                             Icons.arrow_drop_down_rounded,
-                            color: Colors.pink,
+                            color: Color(0xff7DC400),
                             size: 20.w,
                           ),
                           dropdownColor: Colors.white,
