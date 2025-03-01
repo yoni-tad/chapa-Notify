@@ -15,14 +15,13 @@ Chapa Notify is a **Flutter & Node.js-based** transaction notification system in
 ## 🛠 Tech Stack  
 - **Frontend**: Flutter (Dart)  
 - **Backend**: Node.js, GraphQL, MongoDB  
-- **UI Enhancements**: Lottie Animations  
 
 
 ## 🚀 Setup Instructions  
 
 ### 1️⃣ Backend (Node.js)  
 ```bash
-git clone https://github.com/yourusername/chapa-notify.git
+git clone https://github.com/yoni-tad/chapa-Notify.git
 cd backend
 npm install
 npm start
