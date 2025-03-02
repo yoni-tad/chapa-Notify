@@ -10,7 +10,10 @@ Chapa Notify is a **Flutter & Node.js-based** transaction notification system in
 - **Real-time Transaction Tracking**  
 - **GraphQL API with Mongoose**  
 - **Filter Transactions by Date (Today, This Week, This Month, All Time)**  
-- **Internet Connection Checker**  
+- **Internet Connection Checker**
+
+## 🔹 How It Works  
+Chapa Notify is designed to track transactions under one Chapa account, but it categorizes payments based on their payment descriptions. This makes it super easy to manage multiple payments, whether you’re handling different services, products, or clients—all in one place! 📊✅ 
 
 ## 🛠 Tech Stack  
 - **Frontend**: Flutter (Dart)  
