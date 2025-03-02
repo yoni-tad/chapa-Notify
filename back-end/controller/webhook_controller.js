@@ -6,7 +6,6 @@ exports.Webhook = async (req, res) => {
   try {
     // console.log("🔔 Webhook received:", req.body);
     const webhookSecret = process.env.CHAPA_WEBHOOK_SECRET;
-
     const signature =
       req.headers["x-chapa-signature"] || req.headers["Chapa-Signature"];
 
@@ -16,51 +15,55 @@ exports.Webhook = async (req, res) => {
       .update(payload)
       .digest("hex");
 
-    if (expectedSignature === sig0nat0ure) {
-      const responseData = req.body;
+    if (expectedSignature === signature) {
+      console.log("Invalid signature " + expectedSignature + " & " + signature);
+      return res.status(404).send({ error: "Invalid signature" });
+    }
 
-      const {
-        event,
+    const responseData = req.body;
+
+    const {
+      event,
+      tx_ref,
+      payment_method,
+      reference,
+      created_at,
+      status,
+      amount,
+      customization,
+    } = responseData || {};
+
+    if (event == "charge.success" && status == "success") {
+      console.log("Payment was Successful");
+
+      const existingTransaction = await Transaction.findOne({ tx_ref });
+      if (existingTransaction) {
+        return res.status(400).json({ error: "Transaction already processed" });
+      }
+
+      const botName =
+        customization && customization.description
+          ? customization.description
+          : "Telegram";
+
+      const newTransaction = new Transaction({
+        botName,
+        amount,
         tx_ref,
         payment_method,
         reference,
         created_at,
-        status,
-        amount,
-        customization,
-      } = responseData || {};
+        timeStamp: new Date(),
+      });
+      await newTransaction.save();
 
-      if (event == "charge.success" && status == "success") {
-        console.log("Payment was Successful");
-
-        const existingTransaction = await Transaction.findOne({ tx_ref });
-        if (existingTransaction) {
-          res.status(400).json({ error: "Transaction already processed" });
-        }
-
-        const botName = (customization && customization.description) ? customization.description : 'Telegram';
-
-        const newTransaction = new Transaction({
-          botName,
-          amount,
-          tx_ref,
-          payment_method,
-          reference,
-          created_at,
-          timeStamp: new Date(),
-        });
-        await newTransaction.save();
-
-        console.log(`✅ Payment successful for TX_REF: ${tx_ref}`);
-        res.status(200).json({ message: "Transaction saved successfully" });
-        return;
-      } else {
-        console.log("Payment was unsuccessful");
-      }
-    } else {
-      console.log("Invalid signature " + expectedSignature + " & " + signature);
-      return res.status(404).send({ error: "Invalid signature" });
+      console.log(`✅ Payment successful for TX_REF: ${tx_ref}`);
+      res.status(200).json({ message: "Transaction saved successfully" });
+      return;
     }
+
+    console.log("❌ Payment was unsuccessful");
+    return res.status(400).json({ message: "Payment was unsuccessful" });
   } catch (e) {
     console.log("Webhook error " + e);
     res.status(404).send({ message: "Webhook error" });

@@ -5,7 +5,7 @@ const typeDefs = gql`
         id: ID!
         botName: String!
         amount: Float!
-        tx_ref: String!
+        tx_ref: String
         payment_method: String,
         reference: String,
         created_at: String,

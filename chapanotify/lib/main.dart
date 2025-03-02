@@ -1,5 +1,4 @@
 import 'package:chapanotify/config/graphql_config.dart';
-import 'package:chapanotify/screens/home_screen.dart';
 import 'package:chapanotify/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
