@@ -33,6 +33,14 @@ exports.Webhook = async (req, res) => {
       customization,
     } = responseData || {};
 
+    const checkReference = Transaction.findOne({
+      reference
+    });
+    if(checkReference) {
+      console.log("⚠️ Duplicate reference id: " + reference);
+      return res.status(404).send({ error: "⚠️ Duplicate reference" });
+    }
+
     if (event == "charge.success" && status == "success") {
       console.log("Payment was Successful");
 
