@@ -3,7 +3,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 
 class GraphqlConfig {
   static HttpLink httpLink = HttpLink(
-    'https://chapa-notify.yoni-tad.com/graphql/',
+    'YOUR-GRAPHQL-ENDPOINT',
     defaultHeaders: {
       "Content-Type": "application/json",
       "Accept": "application/json",

@@ -85,7 +85,7 @@ exports.createPayment = async (req, res) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}`, // Use your Chapa secret key
+          Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}`,
         },
         body: JSON.stringify(paymentData),
       }
