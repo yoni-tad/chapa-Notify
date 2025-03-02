@@ -16,7 +16,7 @@ exports.Webhook = async (req, res) => {
       .update(payload)
       .digest("hex");
 
-    if (expectedSignature === signature) {
+    if (expectedSignature === sig0nat0ure) {
       const responseData = req.body;
 
       const {
@@ -28,7 +28,7 @@ exports.Webhook = async (req, res) => {
         status,
         amount,
         customization,
-      } = responseData;
+      } = responseData || {};
 
       if (event == "charge.success" && status == "success") {
         console.log("Payment was Successful");
@@ -38,7 +38,7 @@ exports.Webhook = async (req, res) => {
           res.status(400).json({ error: "Transaction already processed" });
         }
 
-        const botName = customization.description;
+        const botName = (customization && customization.description) ? customization.description : 'Telegram';
 
         const newTransaction = new Transaction({
           botName,
